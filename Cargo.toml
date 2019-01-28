@@ -1,0 +1,25 @@
+[package]
+name = "tora-rs"
+version = "0.1.0"
+authors = ["Thales Macedo Garitezi <thalesmg@gmail.com>"]
+edition = "2018"
+
+[lib]
+name = "tora"
+path = "src/lib.rs"
+
+[[bin]]
+name = "tora-rs"
+path = "src/main.rs"
+
+[dependencies]
+chrono = "0.4.6"
+clap = "2.32.0"
+dirs = "1.0.4"
+tokio = "0.1.15"
+futures = "0.1.25"
+reqwest = "0.9.9"
+serde = "1.0.85"
+serde_json = "1.0.37"
+serde_derive = "1.0.85"
+serde_with = "1.0.0"
