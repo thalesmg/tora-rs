@@ -53,7 +53,7 @@ pub struct LogClient {
 }
 
 impl LogClient {
-    pub fn send(self) -> FutureResult<Self, ToraError> {
+    pub fn send(mut self) -> FutureResult<Self, ToraError> {
         let url = format!(
             "https://tartarus.infra.xerpa.com.br:9998/logstash-xerpa-{}-*/_search",
             &self.index
@@ -74,13 +74,14 @@ impl LogClient {
                     .map_err(|_| ToraError)
                     .and_then(|txt| serde_json::from_str::<Logs>(&txt).map_err(|_| ToraError))
                     .unwrap();
-                let cursor = logs.0.last().map(|e| e.cursor.clone());
-                let self_ = LogClient {
-                    cursor,
-                    logs: Some(logs),
-                    ..self
+                let cursor = if let Some(e) = logs.0.last() {
+                    Some(e.cursor.clone())
+                } else {
+                    self.cursor
                 };
-                ok(self_)
+                self.cursor = cursor;
+                self.logs = Some(logs);
+                ok(self)
             }
         }
     }
@@ -95,7 +96,7 @@ impl LogClient {
                     .map_err(|_| ()),
             );
         };
-        let cursor = self.cursor.take();
+        let cursor = self.cursor.clone();
         let query = SearchQuery {
             cursor,
             ..self.query
