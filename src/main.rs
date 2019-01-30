@@ -1,11 +1,14 @@
 extern crate serde;
 
 use clap::{App, Arg};
+use futures::future::ok;
 use futures::sync::mpsc;
 use futures::sync::mpsc::{Receiver, Sender};
 use serde_json::value::{Map, Value};
 use std::iter::FromIterator;
+use std::time::{Duration, Instant};
 use tokio::prelude::*;
+use tokio::timer::Delay;
 
 use tora::search::{print_logs, CommandMsg, LogClient, SearchQuery};
 use tora::ToraError;
@@ -101,6 +104,14 @@ fn main() -> Result<(), ToraError> {
         client
             .send()
             .and_then(|client| client.process_logs())
+            .and_then(|(client, is_empty)| {
+                let delay = if is_empty {
+                    Instant::now() + Duration::from_secs(2)
+                } else {
+                    Instant::now()
+                };
+                Delay::new(delay).then(|_| ok(client))
+            })
             .and_then(|client| Ok(futures::future::Loop::Continue(client)))
     });
 

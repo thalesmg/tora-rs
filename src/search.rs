@@ -1,5 +1,6 @@
 use crate::entries::{Cursor, LogEntry, Logs};
 use crate::ToraError;
+use futures::future::Then;
 use futures::future::{err, ok, FutureResult};
 use futures::sync::mpsc::Sender;
 use reqwest::Client;
@@ -8,6 +9,7 @@ use serde_json::json;
 use serde_json::value::{Map, Value};
 use std::io;
 use tokio::prelude::*;
+use tokio::timer::Delay;
 
 pub enum CommandMsg {
     More(Vec<LogEntry>),
@@ -86,21 +88,22 @@ impl LogClient {
         }
     }
 
-    pub fn process_logs(mut self) -> FutureResult<Self, ToraError> {
+    pub fn process_logs(mut self) -> FutureResult<(Self, bool), ToraError> {
         let logs = self.logs.take();
-        if let Some(logs) = logs {
-            let tx = self.tx.clone();
-            tokio::spawn(
-                tx.send(CommandMsg::More(logs.0))
-                    .map(|_| ())
-                    .map_err(|_| ()),
-            );
+        let mut is_empty = false;
+        if let Some(Logs(logs)) = logs {
+            if logs.len() > 0 {
+                let tx = self.tx.clone();
+                tokio::spawn(tx.send(CommandMsg::More(logs)).map(|_| ()).map_err(|_| ()));
+            } else {
+                is_empty = true;
+            }
         };
         let cursor = self.cursor.clone();
         let query = SearchQuery {
             cursor,
             ..self.query
         };
-        ok(LogClient { query, ..self })
+        ok((LogClient { query, ..self }, is_empty))
     }
 }
