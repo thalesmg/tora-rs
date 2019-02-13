@@ -38,7 +38,8 @@ fn main() -> Result<(), ToraError> {
                 .long("query")
                 .help("query to search for")
                 .takes_value(true)
-                .required(true),
+                .required(false)
+                .default_value(""),
         )
         .get_matches();
 

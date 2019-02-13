@@ -1,6 +1,5 @@
 use crate::entries::{Cursor, LogEntry, Logs};
 use crate::ToraError;
-use futures::future::Then;
 use futures::future::{err, ok, FutureResult};
 use futures::sync::mpsc::Sender;
 use reqwest::Client;
@@ -9,7 +8,6 @@ use serde_json::json;
 use serde_json::value::{Map, Value};
 use std::io;
 use tokio::prelude::*;
-use tokio::timer::Delay;
 
 pub enum CommandMsg {
     More(Vec<LogEntry>),
@@ -30,7 +28,10 @@ fn serialize_query<S>(query: &str, s: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
-    json!({"query_string": {"query": query}}).serialize(s)
+    match query {
+        "" => json!({"query_string": {"query": "*:*"}}).serialize(s),
+        _ => json!({"query_string": {"query": query}}).serialize(s),
+    }
 }
 
 fn format_entry(entry: &LogEntry) -> String {
