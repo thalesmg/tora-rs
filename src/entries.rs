@@ -198,7 +198,7 @@ mod tests {
         let parsed = parse_timestamp(raw);
         assert!(parsed.is_ok());
         let dt = parsed.unwrap();
-        let expected = chrono::Local.ymd(2019, 1, 25).and_hms_milli(22, 0, 0, 74);
+        let expected = chrono::FixedOffset::west(2 * 60 * 60).ymd(2019, 1, 25).and_hms_milli(22, 0, 0, 74);
         assert_eq!(dt, expected);
     }
 }
