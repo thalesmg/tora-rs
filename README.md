@@ -1,4 +1,4 @@
-# tora-rs
+# tora-rs ![](https://travis-ci.org/thalesmg/tora-rs.svg?branch=master)
 
 A poor clone of [tora-hs](https://github.com/dgvncsz0f/tora/) written in Rust as an exercise.
 
